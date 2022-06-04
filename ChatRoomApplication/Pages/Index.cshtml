@@ -1,9 +1,18 @@
 ﻿@page
+@model IndexModel
+
+@if (!Convert.ToBoolean(ViewData["UserLoggedIn"]))
+{
+    <div class="text-center">
+        <p>Please sing in or Register</p>
+    </div>
+}
+else
+{
 <div class="container">
     <div class="row">&nbsp;</div>
     <div class="row">
-        <div class="col-2">User</div>
-        <div class="col-4"><input type="text" id="userInput" /></div>
+        <input type="hidden" id="userInput" value="@ViewData["UserName"]"/>
     </div>
     <div class="row">
         <div class="col-2">Message</div>
@@ -16,15 +25,17 @@
         </div>
     </div>
 </div>
-<div class="row">
-    <div class="col-12">
-        <hr />
+    <div class="row">
+        <div class="col-12">
+            <hr />
+        </div>
     </div>
-</div>
-<div class="row">
-    <div class="col-6">
-        <ul id="messagesList"></ul>
+    <div class="row">
+        <div class="col-6">
+            <ul id="messagesList"></ul>
+        </div>
     </div>
-</div>
+}
+
 <script src="~/js/signalr/dist/browser/signalr.js"></script>
 <script src="~/js/chat.js"></script>

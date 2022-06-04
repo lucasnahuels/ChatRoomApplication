@@ -19,7 +19,11 @@ namespace ChatRoomApplication.Pages
 
         public void OnGet()
         {
-
+            if (User.Identity.IsAuthenticated)
+            {
+                ViewData["UserLoggedIn"] = true;
+                ViewData.Add("UserName", User.Identity.Name);
+            }
         }
     }
 }

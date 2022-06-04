@@ -1,18 +1,17 @@
 ﻿using ChatRoomApplication.Models;
+using ChatRoomApplication.Services.Interfaces;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-namespace ChatRoomApplication.Helpers
+namespace ChatRoomApplication.Services
 {
-    public static class GetUrlHelper
+
+    public class BotService : IBotService
     {
-        public static async Task<string> GetStockData(string stockCode)
+        public async Task<string> GetStockData(string stockCode)
         {
             using (var client = new HttpClient())
             {
@@ -33,7 +32,7 @@ namespace ChatRoomApplication.Helpers
             }
         }
 
-        private static Stock MapResponseToStockModel(string stringContent)
+        private Stock MapResponseToStockModel(string stringContent)
         {
             string data = stringContent.Substring(stringContent.IndexOf(Environment.NewLine, StringComparison.Ordinal) + 2);
             string[] dataColumns = data.Split(',');
