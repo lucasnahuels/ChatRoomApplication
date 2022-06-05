@@ -1,6 +1,8 @@
-﻿using ChatRoomApplication.Models;
+﻿using ChatRoomApplication.Exceptions;
+using ChatRoomApplication.Models;
 using ChatRoomApplication.Services.Interfaces;
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -22,13 +24,23 @@ namespace ChatRoomApplication.Services
                 HttpResponseMessage response = await client.GetAsync($"?s={stockCode}&f=sd2t2ohlcv&h&e=csv");
                 using (HttpContent content = response.Content)
                 {
-                    string stringContent = content.ReadAsStringAsync().Result;
-                    if (response.StatusCode != HttpStatusCode.OK)
-                        throw new ArgumentException(stringContent);
-
-                    var stock = MapResponseToStockModel(stringContent);
-                    return $"{stock.Symbol} quote is {stock.Close} per share";
-                }
+                    try
+                    {
+                        string stringContent = content.ReadAsStringAsync().Result;
+                        if (response.StatusCode != HttpStatusCode.OK)
+                            throw new ArgumentException(stringContent);
+                        var stock = MapResponseToStockModel(stringContent);
+                        return $"{stock.Symbol} quote is {stock.Close} per share";
+                    }
+                    catch (EmptyException)
+                    {
+                        return $"{stockCode} was not found";
+                    }
+                    catch(Exception)
+                    {
+                        return "an error has ocurred during the operation";
+                    }
+                    }
             }
         }
 
@@ -36,6 +48,7 @@ namespace ChatRoomApplication.Services
         {
             string data = stringContent.Substring(stringContent.IndexOf(Environment.NewLine, StringComparison.Ordinal) + 2);
             string[] dataColumns = data.Split(',');
+            if (dataColumns.ToList().Skip(1).Any(c => c != "N/D")) throw new EmptyException();
             return new Stock
             {
                 Symbol = dataColumns[0] != "N/D" ? dataColumns[0] : default,

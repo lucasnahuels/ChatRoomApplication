@@ -19,16 +19,9 @@ namespace ChatRoomApplication.Hubs
             user = user.Substring(0, user.IndexOf('@'));
             if (message.ToLower().StartsWith("/stock="))
             {
-                try
-                {
-                    var stockCode = message.Substring(message.IndexOf('=') + 1);
-                    user = "BOT";
-                    message = await _botService.GetStockData(stockCode);
-                }
-                catch (Exception ex)
-                {
-                    throw ex;
-                }
+                var stockCode = message.Substring(message.IndexOf('=') + 1);
+                user = "BOT";
+                message = await _botService.GetStockData(stockCode);
             }
             await Clients.All.SendAsync("ReceiveMessage", user, message);
         }
