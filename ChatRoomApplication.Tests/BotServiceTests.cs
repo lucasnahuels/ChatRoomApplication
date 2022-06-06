@@ -3,8 +3,12 @@ using ChatRoomApplication.Models;
 using ChatRoomApplication.Services;
 using ChatRoomApplication.Services.Interfaces;
 using Moq;
+using Moq.Protected;
 using System;
+using System.Net;
 using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace ChatRoomApplication.Tests
@@ -15,6 +19,32 @@ namespace ChatRoomApplication.Tests
         public BotServiceTests()
         {
             _httpClientFactory = new Mock<IHttpClientFactory>();
+        }
+
+        [Fact]
+        public void GetStockData_IfStockCodeExists_ReturnsMessage()
+        {
+            //arrange
+            string stockCode = "aapl.us";
+
+            var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+            mockHttpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent("Symbol,Date,Time,Open,High,Low,Close,Volume\r\nAAPL.US,2022 - 06 - 06,15:46:46,147.03,148.31,147.03,147.56,6024286\r\n"),
+                });
+            var client = new HttpClient(mockHttpMessageHandler.Object);
+            _httpClientFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(client);
+
+            var botService = new BotService(_httpClientFactory.Object);
+            
+            //act
+            var response = botService.GetStockData(stockCode);
+
+            //assert
+            Assert.Equal("AAPL.US quote is 147.56 per share", response.Result);
         }
 
         [Theory]

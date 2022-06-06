@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 
 namespace ChatRoomApplication.Services
 {
-
     public class BotService : IBotService
     {
         private readonly IHttpClientFactory _httpClientFactory;
