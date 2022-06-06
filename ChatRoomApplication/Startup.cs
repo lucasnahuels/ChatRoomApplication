@@ -28,6 +28,9 @@ namespace ChatRoomApplication
         {
             services.AddRazorPages();
             services.AddSignalR();
+
+            services.AddHttpClient();
+
             services.AddDomainServices();
             services.AddDatabaseContext(Configuration.GetConnectionString("Seed"));
         }

@@ -13,28 +13,33 @@ namespace ChatRoomApplication.Services
 
     public class BotService : IBotService
     {
+        private readonly IHttpClientFactory _httpClientFactory;
+        public BotService(IHttpClientFactory httpClientFactory)
+        {
+            _httpClientFactory = httpClientFactory;
+        }
         public async Task<string> GetStockData(string stockCode)
         {
-            using (var client = new HttpClient())
+            using (var httpClient = _httpClientFactory.CreateClient())
             {
-                client.BaseAddress = new Uri("https://stooq.com/q/l/");
-                client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                httpClient.BaseAddress = new Uri("https://stooq.com/q/l/");
+                httpClient.DefaultRequestHeaders.Accept.Clear();
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                HttpResponseMessage response = await client.GetAsync($"?s={stockCode}&f=sd2t2ohlcv&h&e=csv");
+                HttpResponseMessage response = await httpClient.GetAsync($"?s={stockCode}&f=sd2t2ohlcv&h&e=csv");
                 using (HttpContent content = response.Content)
                 {
                     try
                     {
                         string stringContent = content.ReadAsStringAsync().Result;
                         if (response.StatusCode != HttpStatusCode.OK)
-                            throw new ArgumentException(stringContent);
+                            throw new Exception(stringContent);
                         var stock = MapResponseToStockModel(stringContent);
                         return $"{stock.Symbol} quote is {stock.Close} per share";
                     }
                     catch (EmptyException)
                     {
-                        return $"{stockCode} was not found";
+                        return $"'{stockCode}' quote was not found";
                     }
                     catch(Exception)
                     {
@@ -48,7 +53,7 @@ namespace ChatRoomApplication.Services
         {
             string data = stringContent.Substring(stringContent.IndexOf(Environment.NewLine, StringComparison.Ordinal) + 2);
             string[] dataColumns = data.Split(',');
-            if (dataColumns.ToList().Skip(1).Any(c => c != "N/D")) throw new EmptyException();
+            if (dataColumns.ToList().Skip(1).Count(c => c == "N/D" || c == "N/D\r\n") == dataColumns.ToList().Skip(1).Count()) throw new EmptyException();
             return new Stock
             {
                 Symbol = dataColumns[0] != "N/D" ? dataColumns[0] : default,
