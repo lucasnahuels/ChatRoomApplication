@@ -47,7 +47,7 @@ namespace ChatRoomApplication.Services
                 }
         }
 
-        private Stock MapResponseToStockModel(string stringContent)
+        public Stock MapResponseToStockModel(string stringContent)
         {
             string data = stringContent.Substring(stringContent.IndexOf(Environment.NewLine, StringComparison.Ordinal) + 2);
             string[] dataColumns = data.Split(',');
