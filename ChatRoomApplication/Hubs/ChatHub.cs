@@ -9,6 +9,7 @@ namespace ChatRoomApplication.Hubs
 {
     public class ChatHub : Hub
     {
+        private const string Bot = "BOT";
         private readonly IBotService _botService;
         public ChatHub(IBotService botService)
         {
@@ -20,7 +21,7 @@ namespace ChatRoomApplication.Hubs
             if (message.ToLower().StartsWith("/stock="))
             {
                 var stockCode = message.Substring(message.IndexOf('=') + 1);
-                user = "BOT";
+                user = Bot;
                 message = await _botService.GetStockData(stockCode);
             }
             await Clients.All.SendAsync("ReceiveMessage", user, message);

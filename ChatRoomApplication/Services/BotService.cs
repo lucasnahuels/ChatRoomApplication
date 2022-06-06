@@ -20,33 +20,31 @@ namespace ChatRoomApplication.Services
         }
         public async Task<string> GetStockData(string stockCode)
         {
-            using (var httpClient = _httpClientFactory.CreateClient())
-            {
-                httpClient.BaseAddress = new Uri("https://stooq.com/q/l/");
-                httpClient.DefaultRequestHeaders.Accept.Clear();
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var httpClient = _httpClientFactory.CreateClient();
+            httpClient.BaseAddress = new Uri("https://stooq.com/q/l/");
+            httpClient.DefaultRequestHeaders.Accept.Clear();
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                HttpResponseMessage response = await httpClient.GetAsync($"?s={stockCode}&f=sd2t2ohlcv&h&e=csv");
-                using (HttpContent content = response.Content)
+            HttpResponseMessage response = await httpClient.GetAsync($"?s={stockCode}&f=sd2t2ohlcv&h&e=csv");
+            using (HttpContent content = response.Content)
+            {
+                try
                 {
-                    try
-                    {
-                        string stringContent = content.ReadAsStringAsync().Result;
-                        if (response.StatusCode != HttpStatusCode.OK)
-                            throw new Exception(stringContent);
-                        var stock = MapResponseToStockModel(stringContent);
-                        return $"{stock.Symbol} quote is {stock.Close} per share";
-                    }
-                    catch (EmptyException)
-                    {
-                        return $"'{stockCode}' quote was not found";
-                    }
-                    catch(Exception)
-                    {
-                        return "an error has ocurred during the operation";
-                    }
-                    }
-            }
+                    string stringContent = content.ReadAsStringAsync().Result;
+                    if (response.StatusCode != HttpStatusCode.OK)
+                        throw new Exception(stringContent);
+                    var stock = MapResponseToStockModel(stringContent);
+                    return $"{stock.Symbol} quote is {stock.Close} per share";
+                }
+                catch (EmptyException)
+                {
+                    return $"'{stockCode}' quote was not found";
+                }
+                catch(Exception)
+                {
+                    return "an error has ocurred during the operation";
+                }
+                }
         }
 
         private Stock MapResponseToStockModel(string stringContent)
